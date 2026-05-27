@@ -1,7 +1,28 @@
-import tseslint from 'typescript-eslint';
+// eslint.config.js
+import typescriptPlugin from '@typescript-eslint/eslint-plugin';
+import typescriptParser from '@typescript-eslint/parser';
 
-/** @type {import('eslint').Linter.Config[]} */
 export default [
-  { files: ['**/*.{js,mjs,cjs,ts}'] },
-  ...tseslint.configs.recommended,
+  {
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: typescriptParser,
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+    },
+    plugins: {
+      '@typescript-eslint': typescriptPlugin,
+    },
+    rules: {
+      ...typescriptPlugin.configs.recommended.rules,
+      '@typescript-eslint/no-unused-expressions': [
+        'error',
+        {
+          allowShortCircuit: false,
+          allowTernary: false,
+          allowTaggedTemplates: false,
+        },
+      ],
+    },
+  },
 ];
