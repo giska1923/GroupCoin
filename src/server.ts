@@ -1,3 +1,7 @@
+// MUST be the first import — polyfills `Reflect.getMetadata` for
+// class-validator / class-transformer / sequelize-typescript decorators.
+import 'reflect-metadata';
+
 import http from 'http';
 
 import app from './app';

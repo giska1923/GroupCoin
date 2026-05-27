@@ -3,3 +3,4 @@ export * from './error';
 export * from './group-role';
 export * from './split-type';
 export * from './activity-type';
+export * from './auth';

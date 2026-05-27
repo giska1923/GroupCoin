@@ -1,7 +1,7 @@
 import express, { json } from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
-import { userRoutes, healthRoute } from './routes';
+import { userRoutes, healthRoute, authRoutes } from './routes';
 import sequelize from './config/db.config';
 import { rateLimiter } from './middlewares/rate-limit.middleware';
 
@@ -29,6 +29,7 @@ app.use(rateLimiter);
 })();
 
 // Routes
+app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/health', healthRoute);
 

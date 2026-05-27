@@ -7,10 +7,16 @@ interface DbConfig {
   logging?: boolean | undefined;
 }
 
+interface JwtConfig {
+  secret: string;
+  expiresIn: string;
+}
+
 interface AppConfig {
   env: string | undefined;
   port: number;
   db: DbConfig;
+  jwt: JwtConfig;
 }
 
 export default AppConfig;

@@ -3,8 +3,16 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+// Fail fast if JWT_SECRET is missing — without it auth is silently broken.
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret) {
+  throw new Error(
+    'JWT_SECRET environment variable is required. See .env.example.',
+  );
+}
+
 export default (): AppConfig => ({
-  env: process.env.ENV,
+  env: process.env.NODE_ENV,
   port: Number(process.env.PORT),
   db: {
     host: process.env.DB_HOST,
@@ -12,7 +20,10 @@ export default (): AppConfig => ({
     username: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     name: process.env.DB_NAME,
-    // TODO: Add logging env variable and funcitonality
     logging: process.env.DB_LOGGING === 'true',
+  },
+  jwt: {
+    secret: jwtSecret,
+    expiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
   },
 });
