@@ -1,0 +1,35 @@
+import { Expose, Type } from 'class-transformer';
+import { GroupRoleType } from '../../types';
+import { UserDTO } from './user.dto';
+
+export class GroupDTO {
+  @Expose() id!: string;
+  @Expose() name!: string;
+  @Expose() description!: string | null;
+  @Expose() defaultCurrency!: string;
+  @Expose() ownerId!: string;
+  @Expose() createdAt!: Date;
+  @Expose() updatedAt!: Date;
+}
+
+export class GroupMemberDTO {
+  @Expose() id!: string;
+  @Expose() groupId!: string;
+  @Expose() userId!: string;
+  @Expose() role!: GroupRoleType;
+  @Expose() createdAt!: Date;
+
+  @Expose()
+  @Type(() => UserDTO)
+  user?: UserDTO;
+}
+
+export class GroupDetailDTO {
+  @Expose()
+  @Type(() => GroupDTO)
+  group!: GroupDTO;
+
+  @Expose()
+  @Type(() => GroupMemberDTO)
+  members!: GroupMemberDTO[];
+}

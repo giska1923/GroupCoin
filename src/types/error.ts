@@ -35,3 +35,15 @@ export class AuthenticationError extends AppError {
     super(message, 401, 'UNAUTHORIZED');
   }
 }
+
+export class ForbiddenError extends AppError {
+  constructor(message: string) {
+    super(message, 403, 'FORBIDDEN');
+  }
+}
+
+export class ConflictError extends AppError {
+  constructor(message: string) {
+    super(message, 409, 'CONFLICT');
+  }
+}
