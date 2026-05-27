@@ -8,6 +8,7 @@ interface DbConfig {
 }
 
 interface AppConfig {
+  env: string | undefined;
   port: number;
   db: DbConfig;
 }

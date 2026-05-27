@@ -13,7 +13,7 @@
 // });
 
 // db.connect()
-//   .then(() => console.log('Connected to PostgreSQL'))
+//   .then(() => logger.log('Connected to PostgreSQL'))
 //   .catch(err => console.error('Connection error', err.stack));
 
 // export default db;
@@ -21,8 +21,10 @@
 import { Sequelize } from 'sequelize-typescript';
 import config from './app.config';
 import User from '../models/user';
+import AppLogger from '../utils/logger';
 
 const appConfig = config();
+const logger = new AppLogger('DB');
 
 const sequelize = new Sequelize({
   database: appConfig.db.name,
@@ -41,8 +43,12 @@ sequelize.addModels([User]);
 sequelize
   .authenticate()
   .then(() =>
-    console.log('Database connection has been established successfully.'),
+    logger.log('Database connection has been established successfully.'),
   )
-  .catch(error => console.error('Unable to connect to the database:', error));
+  .catch((error: unknown) =>
+    logger.error(
+      `Unable to connect to the database: ${(error as Error).message}`,
+    ),
+  );
 
 export default sequelize;

@@ -54,7 +54,7 @@ export default class User extends Model<
   })
   declare email: string;
 
-  @Column({ type: DataType.STRING })
+  @Column({ type: DataType.STRING, unique: true })
   declare contact: string;
 
   @Column({
@@ -68,7 +68,7 @@ export default class User extends Model<
   declare password: string;
 
   // @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
-  // isEmailVerified: boolean;
+  // isVerified: boolean;
 
   @Column({
     allowNull: false,
@@ -79,4 +79,18 @@ export default class User extends Model<
     },
   })
   declare role: RoleType;
+
+  @Column({
+    type: DataType.DATE,
+    field: 'created_at',
+    defaultValue: DataType.NOW,
+  })
+  declare createdAt: Date;
+
+  @Column({
+    type: DataType.DATE,
+    field: 'updated_at',
+    defaultValue: DataType.NOW,
+  })
+  declare updatedAt: Date;
 }

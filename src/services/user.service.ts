@@ -1,29 +1,31 @@
 import { Role } from '../constants';
-import { CreateUserDTO } from '../dtos';
+import { CreateUserDTO } from '../dtos/request';
+import { UserDTO } from '../dtos/response';
 import User from '../models/user';
+import { mapToClass } from '../utils/validation/class-mapper';
 
 const UserService = {
   async getAllUsers() {
-    try {
-      const users = await User.findAll();
-      return users;
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      throw error;
-    }
+    const users = await User.findAll();
+    console.log(users[0].createdAt);
+    return users;
   },
 
-  async createUser(createUserDto: CreateUserDTO) {
-    try {
-      const userData = { ...createUserDto, role: Role.BASIC };
-      const user = User.build(userData);
-      await user.save();
+  async getUserById(id: string): Promise<UserDTO | null> {
+    const user = await User.findOne({ where: { id } });
+    return user as unknown as UserDTO;
+  },
 
-      return user;
-    } catch (error) {
-      console.error('Error creating user:', error);
-      throw error;
-    }
+  async createUser(createUserDto: CreateUserDTO): Promise<UserDTO> {
+    const userData = { ...createUserDto, role: Role.BASIC };
+    const user = User.build(userData);
+    const savedUser = await user.save();
+
+    return mapToClass(savedUser, UserDTO);
+  },
+
+  async updateUser(id: string, userObject: CreateUserDTO) {
+    User.update(userObject, { where: { id } });
   },
 };
 
