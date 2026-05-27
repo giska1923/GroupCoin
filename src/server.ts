@@ -1,13 +1,20 @@
+import http from 'http';
+
 import app from './app';
 import config from './config/app.config';
 import AppLogger from './utils/logger';
 import handler from '../src/utils/error-handler';
+import { initializeSocketServer } from './websockets/server';
 
 const appConfig = config();
 const logger = new AppLogger('Server');
 
 const startServer = async () => {
-  app.listen(appConfig.port, () => {
+  const server = http.createServer(app);
+
+  initializeSocketServer(server);
+
+  server.listen(appConfig.port, () => {
     logger.log(`Server running on http://localhost:${appConfig.port}`);
   });
 };

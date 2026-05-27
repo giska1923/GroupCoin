@@ -32,13 +32,14 @@ class AppLogger {
   }
 
   private logMessage(level: string, message: string) {
-    const logMessage = this.context ? `[${this.context}] ${message}` : message;
-    this.logger.log({ level, message: logMessage });
+    console.log(`${level}: ${message}`);
+    // Commented out for the Development phase
+    // const logMessage = this.context ? `[${this.context}] ${message}` : message;
+    // this.logger.log({ level, message: logMessage });
   }
 
   log(message: string) {
-    console.log(message);
-    // this.logMessage('info', message); // Commented out for the Development phase
+    this.logMessage('info', message);
   }
 
   warn(message: string) {
