@@ -20,7 +20,15 @@
 
 import { Sequelize } from 'sequelize-typescript';
 import config from './app.config';
-import User from '../models/user';
+import {
+  Activity,
+  Expense,
+  ExpenseSplit,
+  Group,
+  GroupMember,
+  Settlement,
+  User,
+} from '../models';
 import AppLogger from '../utils/logger';
 
 const appConfig = config();
@@ -38,7 +46,15 @@ const sequelize = new Sequelize({
     timestamps: true,
   },
 });
-sequelize.addModels([User]);
+sequelize.addModels([
+  User,
+  Group,
+  GroupMember,
+  Expense,
+  ExpenseSplit,
+  Settlement,
+  Activity,
+]);
 
 sequelize
   .authenticate()

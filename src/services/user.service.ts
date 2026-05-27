@@ -17,15 +17,21 @@ const UserService = {
   },
 
   async createUser(createUserDto: CreateUserDTO): Promise<UserDTO> {
-    const userData = { ...createUserDto, role: Role.BASIC };
-    const user = User.build(userData);
+    const { password, ...rest } = createUserDto;
+    // The User model's beforeSave hook hashes any plain value assigned to
+    // `passwordHash`, so we pass the raw password through that field.
+    const user = User.build({
+      ...rest,
+      passwordHash: password,
+      role: Role.BASIC,
+    });
     const savedUser = await user.save();
 
     return mapToClass(savedUser, UserDTO);
   },
 
   async updateUser(id: string, userObject: CreateUserDTO) {
-    User.update(userObject, { where: { id } });
+    await User.update(userObject, { where: { id } });
   },
 };
 
