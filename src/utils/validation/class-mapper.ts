@@ -8,6 +8,5 @@ export const mapToClass = <T>(obj: any, toClass: ClassType<T>): T => {
   const mappedObj = plainToInstance(toClass, obj, {
     excludeExtraneousValues: true,
   });
-  console.log(mappedObj);
   return mappedObj;
 };
