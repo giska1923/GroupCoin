@@ -1,7 +1,7 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
 const UserController = {
-  getAllUsers(_: any, res: Response) {
+  getAllUsers(_req: Request, res: Response) {
     res.json({ message: 'User successfully retrieved' });
   },
 };
