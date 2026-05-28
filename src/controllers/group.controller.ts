@@ -4,6 +4,7 @@ import {
   CreateGroupDTO,
   UpdateGroupDTO,
 } from '../dtos/request';
+import ActivityService from '../services/activity.service';
 import GroupService from '../services/group.service';
 import { AuthenticationError } from '../types';
 
@@ -68,6 +69,21 @@ const GroupController = {
       req.params.userId,
     );
     return res.status(204).send();
+  },
+
+  async listActivity(req: Request, res: Response) {
+    const user = requireUser(req);
+    const limit =
+      req.query.limit !== undefined ? Number(req.query.limit) : undefined;
+    const offset =
+      req.query.offset !== undefined ? Number(req.query.offset) : undefined;
+    const result = await ActivityService.listGroupActivity({
+      actorId: user.id,
+      groupId: req.params.id,
+      limit,
+      offset,
+    });
+    return res.status(200).json(result);
   },
 };
 

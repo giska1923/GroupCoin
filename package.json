@@ -1,8 +1,8 @@
 {
-  "name": "screener",
+  "name": "groupcoin",
   "type": "module",
   "version": "1.0.0",
-  "description": "Football analytics screener",
+  "description": "GroupCoin keeps a clear, real-time balance and settles debts with a single tap",
   "main": "src/server.ts",
   "scripts": {
     "build": "tsc",
@@ -15,7 +15,7 @@
     "lint:fix": "eslint \"src/**/*.ts\" --fix",
     "db:migrate": "npx sequelize-cli db:migrate"
   },
-  "author": "Onix Screener",
+  "author": "GroupCoin",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^6.0.0",

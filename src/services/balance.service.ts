@@ -4,7 +4,7 @@ import {
   UserBalanceDTO,
   UserDTO,
 } from '../dtos/response';
-import { Expense, ExpenseSplit, GroupMember, User } from '../models';
+import { Expense, ExpenseSplit, GroupMember, Settlement, User } from '../models';
 import { fromCents, toCents } from '../utils/money';
 import { mapToClass } from '../utils/validation/class-mapper';
 import { assertMember, loadGroupOr404 } from './group-access.service';
@@ -33,41 +33,55 @@ const addToBalance = (
 /**
  * Compute net balances for every member of a group, in cents per currency.
  *
- * Strategy: two queries (expenses, splits) joined in memory to avoid N+1.
- * Settlements are NOT yet included — they will be subtracted here once the
- * Settlement endpoints land.
+ * Strategy: three independent queries (expenses, splits, settlements) joined
+ * in memory to avoid N+1 round-trips.
+ *
+ * Sign convention (positive = group owes the user):
+ *   Expense:   paidBy += amount, each split user -= owedAmount
+ *   Settlement: fromUser += amount (debt paid down),
+ *               toUser   -= amount (credit reduced)
  */
 const computeNetBalances = async (groupId: string): Promise<BalanceMap> => {
   const balances: BalanceMap = new Map();
 
-  const expenses = await Expense.findAll({ where: { groupId } });
-  if (expenses.length === 0) return balances;
+  const [expenses, settlements] = await Promise.all([
+    Expense.findAll({ where: { groupId } }),
+    Settlement.findAll({ where: { groupId } }),
+  ]);
 
-  const expenseIds = expenses.map(e => e.id);
-  const splits = await ExpenseSplit.findAll({
-    where: { expenseId: expenseIds },
-  });
+  if (expenses.length > 0) {
+    const expenseIds = expenses.map(e => e.id);
+    const splits = await ExpenseSplit.findAll({
+      where: { expenseId: expenseIds },
+    });
 
-  const splitsByExpense = new Map<string, ExpenseSplit[]>();
-  for (const split of splits) {
-    const list = splitsByExpense.get(split.expenseId) ?? [];
-    list.push(split);
-    splitsByExpense.set(split.expenseId, list);
+    const splitsByExpense = new Map<string, ExpenseSplit[]>();
+    for (const split of splits) {
+      const list = splitsByExpense.get(split.expenseId) ?? [];
+      list.push(split);
+      splitsByExpense.set(split.expenseId, list);
+    }
+
+    for (const expense of expenses) {
+      const amountCents = toCents(expense.amount);
+      addToBalance(balances, expense.paidBy, expense.currency, amountCents);
+
+      const expenseSplits = splitsByExpense.get(expense.id) ?? [];
+      for (const split of expenseSplits) {
+        addToBalance(
+          balances,
+          split.userId,
+          expense.currency,
+          -toCents(split.owedAmount),
+        );
+      }
+    }
   }
 
-  for (const expense of expenses) {
-    const amountCents = toCents(expense.amount);
-    addToBalance(balances, expense.paidBy, expense.currency, amountCents);
-
-    const expenseSplits = splitsByExpense.get(expense.id) ?? [];
-    for (const split of expenseSplits) {
-      addToBalance(
-        balances,
-        split.userId,
-        expense.currency,
-        -toCents(split.owedAmount),
-      );
-    }
+  for (const settlement of settlements) {
+    const cents = toCents(settlement.amount);
+    addToBalance(balances, settlement.fromUserId, settlement.currency, cents);
+    addToBalance(balances, settlement.toUserId, settlement.currency, -cents);
   }
 
   return balances;
