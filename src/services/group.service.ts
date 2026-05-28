@@ -1,4 +1,3 @@
-import { Transaction } from 'sequelize';
 import { ActivityType, GroupRole } from '../constants';
 import sequelize from '../config/db.config';
 import {
@@ -13,70 +12,18 @@ import {
   UserDTO,
 } from '../dtos/response';
 import { Group, GroupMember, User } from '../models';
-import {
-  ConflictError,
-  ForbiddenError,
-  GroupRoleType,
-  NotFoundError,
-} from '../types';
+import { ConflictError, ForbiddenError, GroupRoleType, NotFoundError } from '../types';
 import { mapToClass } from '../utils/validation/class-mapper';
 import ActivityService from './activity.service';
+import {
+  assertAdminOrOwner,
+  assertMember,
+  assertOwner,
+  loadGroupOr404,
+  loadMembership,
+} from './group-access.service';
 
 // ---------- Internal helpers ----------
-
-const loadGroupOr404 = async (
-  groupId: string,
-  transaction?: Transaction,
-): Promise<Group> => {
-  const group = await Group.findByPk(groupId, { transaction });
-  if (!group) {
-    throw new NotFoundError('Group not found');
-  }
-  return group;
-};
-
-const loadMembership = async (
-  groupId: string,
-  userId: string,
-  transaction?: Transaction,
-): Promise<GroupMember | null> => {
-  return GroupMember.findOne({
-    where: { groupId, userId },
-    transaction,
-  });
-};
-
-const assertMember = async (
-  groupId: string,
-  userId: string,
-  transaction?: Transaction,
-): Promise<GroupMember> => {
-  const membership = await loadMembership(groupId, userId, transaction);
-  if (!membership) {
-    throw new ForbiddenError('You are not a member of this group');
-  }
-  return membership;
-};
-
-const assertAdminOrOwner = async (
-  group: Group,
-  userId: string,
-  transaction?: Transaction,
-): Promise<void> => {
-  if (group.ownerId === userId) return;
-  const membership = await loadMembership(group.id, userId, transaction);
-  if (!membership || membership.role !== GroupRole.ADMIN) {
-    throw new ForbiddenError(
-      'Only the group owner or an admin can perform this action',
-    );
-  }
-};
-
-const assertOwner = (group: Group, userId: string): void => {
-  if (group.ownerId !== userId) {
-    throw new ForbiddenError('Only the group owner can perform this action');
-  }
-};
 
 const toGroupDTO = (group: Group): GroupDTO => mapToClass(group, GroupDTO);
 

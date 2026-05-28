@@ -1,7 +1,9 @@
 import { Router } from 'express';
+import ExpenseController from '../controllers/expense.controller';
 import GroupController from '../controllers/group.controller';
 import {
   AddGroupMemberDTO,
+  CreateExpenseDTO,
   CreateGroupDTO,
   UpdateGroupDTO,
 } from '../dtos/request';
@@ -38,6 +40,21 @@ router.post(
 router.delete(
   '/:id/members/:userId',
   asyncWrapper(GroupController.removeMember),
+);
+
+// Expenses (nested under group)
+router.post(
+  '/:id/expenses',
+  validateDTO(CreateExpenseDTO),
+  asyncWrapper(ExpenseController.createExpense),
+);
+router.get('/:id/expenses', asyncWrapper(ExpenseController.listGroupExpenses));
+
+// Balances
+router.get('/:id/balances', asyncWrapper(ExpenseController.getGroupBalances));
+router.get(
+  '/:id/balances/simplified',
+  asyncWrapper(ExpenseController.getSimplifiedTransfers),
 );
 
 export default router;

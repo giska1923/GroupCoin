@@ -1,7 +1,13 @@
 import express, { json } from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
-import { userRoutes, healthRoute, authRoutes, groupRoutes } from './routes';
+import {
+  userRoutes,
+  healthRoute,
+  authRoutes,
+  groupRoutes,
+  expenseRoutes,
+} from './routes';
 import sequelize from './config/db.config';
 import { rateLimiter } from './middlewares/rate-limit.middleware';
 
@@ -32,6 +38,7 @@ app.use(rateLimiter);
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/groups', groupRoutes);
+app.use('/expenses', expenseRoutes);
 app.use('/health', healthRoute);
 
 // Catch-all for unmatched routes
