@@ -245,7 +245,12 @@ const GroupService = {
   ): Promise<void> {
     await sequelize.transaction(async transaction => {
       const group = await loadGroupOr404(groupId, transaction);
-      await assertAdminOrOwner(group, actorId, transaction);
+
+      if (actorId === targetUserId) {
+        await assertMember(groupId, actorId, transaction);
+      } else {
+        await assertAdminOrOwner(group, actorId, transaction);
+      }
 
       if (group.ownerId === targetUserId) {
         throw new ForbiddenError(
