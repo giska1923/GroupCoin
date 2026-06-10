@@ -1,8 +1,8 @@
 import { UniqueConstraintError } from 'sequelize';
-import { Role } from '../constants';
+import { Role, InvitationStatus } from '../constants';
 import { LoginDTO, RegisterDTO } from '../dtos/request';
 import { AuthResponseDTO, UserDTO } from '../dtos/response';
-import { User } from '../models';
+import { GroupInvitation, User } from '../models';
 import { AuthenticationError, BadRequestError, NotFoundError } from '../types';
 import { signToken } from '../utils/jwt';
 import { mapToClass } from '../utils/validation/class-mapper';
@@ -28,6 +28,18 @@ const AuthService = {
         passwordHash: dto.password,
         role: Role.BASIC,
       });
+
+      await GroupInvitation.update(
+        { inviteeUserId: user.id },
+        {
+          where: {
+            inviteeEmail: user.email,
+            inviteeUserId: null,
+            status: InvitationStatus.PENDING,
+          },
+        },
+      );
+
       return issueAuthResponse(user);
     } catch (error) {
       if (error instanceof UniqueConstraintError) {

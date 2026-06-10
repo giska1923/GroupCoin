@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import ExpenseController from '../controllers/expense.controller';
 import GroupController from '../controllers/group.controller';
+import InvitationController from '../controllers/invitation.controller';
 import SettlementController from '../controllers/settlement.controller';
 import {
   ActivityQueryDTO,
@@ -43,6 +44,16 @@ router.post(
 router.delete(
   '/:id/members/:userId',
   asyncWrapper(GroupController.removeMember),
+);
+
+// Invitations (admin view + revoke)
+router.get(
+  '/:id/invitations',
+  asyncWrapper(InvitationController.listGroupInvitations),
+);
+router.delete(
+  '/:id/invitations/:invitationId',
+  asyncWrapper(InvitationController.revoke),
 );
 
 // Expenses (nested under group)

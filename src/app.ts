@@ -7,6 +7,7 @@ import {
   authRoutes,
   groupRoutes,
   expenseRoutes,
+  invitationRoutes,
   settlementRoutes,
 } from './routes';
 import sequelize from './config/db.config';
@@ -40,6 +41,7 @@ app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/groups', groupRoutes);
 app.use('/expenses', expenseRoutes);
+app.use('/invitations', invitationRoutes);
 app.use('/settlements', settlementRoutes);
 app.use('/health', healthRoute);
 

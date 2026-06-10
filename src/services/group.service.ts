@@ -9,12 +9,15 @@ import {
   GroupDetailDTO,
   GroupDTO,
   GroupMemberDTO,
+  InvitationDTO,
   UserDTO,
 } from '../dtos/response';
 import { Group, GroupMember, User } from '../models';
-import { ConflictError, ForbiddenError, GroupRoleType, NotFoundError } from '../types';
+import { ForbiddenError, NotFoundError } from '../types';
 import { mapToClass } from '../utils/validation/class-mapper';
 import ActivityService from './activity.service';
+import InvitationService from './invitation.service';
+import { notifyInvitationReceived } from '../websockets/invitation-notifier';
 import {
   assertAdminOrOwner,
   assertMember,
@@ -45,7 +48,9 @@ const GroupService = {
     actorId: string,
     dto: CreateGroupDTO,
   ): Promise<GroupDetailDTO> {
-    return sequelize.transaction(async transaction => {
+    let invitationsToNotify: InvitationDTO[] = [];
+
+    const detail = await sequelize.transaction(async transaction => {
       const group = await Group.create(
         {
           name: dto.name,
@@ -77,14 +82,30 @@ const GroupService = {
 
       const owner = await User.findByPk(actorId, { transaction });
 
-      return mapToClass(
+      const detail = mapToClass(
         {
           group: toGroupDTO(group),
           members: [toMemberDTO(membership, owner)],
         },
         GroupDetailDTO,
       );
+
+      const inviteEmails = dto.inviteEmails ?? [];
+      if (inviteEmails.length > 0) {
+        invitationsToNotify = await InvitationService.createInvitations(
+          actorId,
+          group.id,
+          inviteEmails,
+          { transaction, notify: false },
+        );
+      }
+
+      return detail;
     });
+
+    invitationsToNotify.forEach(notifyInvitationReceived);
+
+    return detail;
   },
 
   async listGroupsForUser(userId: string): Promise<GroupDTO[]> {
@@ -210,54 +231,10 @@ const GroupService = {
     actorId: string,
     groupId: string,
     dto: AddGroupMemberDTO,
-  ): Promise<GroupMemberDTO> {
-    return sequelize.transaction(async transaction => {
-      const group = await loadGroupOr404(groupId, transaction);
-      await assertAdminOrOwner(group, actorId, transaction);
-
-      const targetUser = await User.findOne({
-        where: { email: dto.email.toLowerCase() },
-        transaction,
-      });
-      if (!targetUser) {
-        throw new NotFoundError(`No user found with email ${dto.email}`);
-      }
-
-      const existing = await loadMembership(
-        groupId,
-        targetUser.id,
-        transaction,
-      );
-      if (existing) {
-        throw new ConflictError('User is already a member of this group');
-      }
-
-      const role: GroupRoleType = dto.role ?? GroupRole.MEMBER;
-      const membership = await GroupMember.create(
-        {
-          groupId,
-          userId: targetUser.id,
-          role,
-        },
-        { transaction },
-      );
-
-      await ActivityService.record({
-        type: ActivityType.MEMBER_ADDED,
-        actorId,
-        groupId,
-        entityType: 'group_member',
-        entityId: membership.id,
-        metadata: {
-          userId: targetUser.id,
-          email: targetUser.email,
-          name: targetUser.name,
-          role,
-        },
-        transaction,
-      });
-
-      return toMemberDTO(membership, targetUser);
+  ): Promise<InvitationDTO> {
+    return InvitationService.createInvitation(actorId, groupId, {
+      email: dto.email,
+      role: dto.role,
     });
   },
 

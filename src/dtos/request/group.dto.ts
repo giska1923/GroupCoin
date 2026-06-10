@@ -1,4 +1,6 @@
 import {
+  ArrayMaxSize,
+  IsArray,
   IsEmail,
   IsIn,
   IsNotEmpty,
@@ -25,6 +27,12 @@ export class CreateGroupDTO {
   @IsString()
   @Length(3, 3, { message: 'defaultCurrency must be a 3-letter ISO 4217 code' })
   defaultCurrency?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(50)
+  @IsEmail({}, { each: true })
+  inviteEmails?: string[];
 }
 
 export class UpdateGroupDTO {

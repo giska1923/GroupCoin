@@ -4,3 +4,4 @@ export * from './currency';
 export * from './group-role';
 export * from './split-type';
 export * from './activity-type';
+export * from './invitation-status';

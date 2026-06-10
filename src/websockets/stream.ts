@@ -1,12 +1,37 @@
 import { Socket } from 'socket.io';
-import { disconnectHandler, messageHandler } from './handlers';
+import AppLogger from '../utils/logger';
+import { AuthenticationError } from '../types';
+import { authenticateSocket } from './auth';
+import { disconnectHandler } from './handlers';
+import { registerUserSocket, unregisterUserSocket } from './user-registry';
+
+const logger = new AppLogger('WebSocket');
 
 const stream = (socket: Socket) => {
-  console.log(`Client connected, socket id: ${socket.id}`);
+  let userId: string | null = null;
 
-  socket.on('message', data => messageHandler(socket, data));
+  try {
+    const authenticated = authenticateSocket(socket);
+    userId = authenticated.userId;
+    registerUserSocket(userId, socket.id);
+    logger.log(`Client connected: user=${userId}, socket=${socket.id}`);
+  } catch (error) {
+    const message =
+      error instanceof AuthenticationError
+        ? error.message
+        : 'Socket authentication failed';
+    logger.error(message);
+    socket.emit('error', { message });
+    socket.disconnect(true);
+    return;
+  }
 
-  socket.on('disconnect', () => disconnectHandler(socket));
+  socket.on('disconnect', () => {
+    if (userId) {
+      unregisterUserSocket(userId, socket.id);
+    }
+    disconnectHandler(socket);
+  });
 };
 
 export default stream;
