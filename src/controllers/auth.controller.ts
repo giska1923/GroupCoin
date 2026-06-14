@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { LoginDTO, RegisterDTO } from '../dtos/request';
 import AuthService from '../services/auth.service';
+import UserService from '../services/user.service';
 import { AuthenticationError } from '../types';
 
 const AuthController = {
@@ -22,6 +23,14 @@ const AuthController = {
     }
     const user = await AuthService.me(req.user.id);
     return res.status(200).json(user);
+  },
+
+  async deleteAccount(req: Request, res: Response) {
+    if (!req.user) {
+      throw new AuthenticationError('Not authenticated');
+    }
+    await UserService.deleteAccount(req.user.id);
+    return res.status(204).send();
   },
 };
 
