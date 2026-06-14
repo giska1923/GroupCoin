@@ -6,3 +6,4 @@ export { default as ExpenseSplit } from './expense-split';
 export { default as Settlement } from './settlement';
 export { default as Activity } from './activity';
 export { default as GroupInvitation } from './group-invitation';
+export { default as Feedback } from './feedback';

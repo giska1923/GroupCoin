@@ -5,6 +5,7 @@ import groupRoutes from './group.route';
 import expenseRoutes from './expense.route';
 import invitationRoutes from './invitation.route';
 import settlementRoutes from './settlement.route';
+import feedbackRoutes from './feedback.route';
 
 export {
   userRoutes,
@@ -14,4 +15,5 @@ export {
   expenseRoutes,
   invitationRoutes,
   settlementRoutes,
+  feedbackRoutes,
 };

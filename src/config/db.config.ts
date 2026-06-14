@@ -24,6 +24,7 @@ import {
   Activity,
   Expense,
   ExpenseSplit,
+  Feedback,
   Group,
   GroupInvitation,
   GroupMember,
@@ -56,6 +57,7 @@ sequelize.addModels([
   Settlement,
   Activity,
   GroupInvitation,
+  Feedback,
 ]);
 
 sequelize

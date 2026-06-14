@@ -9,6 +9,7 @@ import {
   expenseRoutes,
   invitationRoutes,
   settlementRoutes,
+  feedbackRoutes,
 } from './routes';
 import sequelize from './config/db.config';
 import { rateLimiter } from './middlewares/rate-limit.middleware';
@@ -43,6 +44,7 @@ app.use('/groups', groupRoutes);
 app.use('/expenses', expenseRoutes);
 app.use('/invitations', invitationRoutes);
 app.use('/settlements', settlementRoutes);
+app.use('/feedback', feedbackRoutes);
 app.use('/health', healthRoute);
 
 // Catch-all for unmatched routes

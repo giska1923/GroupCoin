@@ -5,3 +5,4 @@ export * from './split-type';
 export * from './activity-type';
 export * from './auth';
 export * from './invitation-status';
+export * from './feedback-topic';
