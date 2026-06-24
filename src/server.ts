@@ -19,7 +19,7 @@ const startServer = async () => {
   initializeSocketServer(server);
 
   server.listen(appConfig.port, () => {
-    logger.log(`Server running on http://localhost:${appConfig.port}`);
+    logger.log(`Server listening on port ${appConfig.port}`);
   });
 };
 

@@ -15,12 +15,14 @@ export default (): AppConfig => ({
   env: process.env.NODE_ENV,
   port: Number(process.env.PORT),
   db: {
+    url: process.env.DATABASE_URL,
     host: process.env.DB_HOST,
     port: Number(process.env.DB_PORT),
     username: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     name: process.env.DB_NAME,
     logging: process.env.DB_LOGGING === 'true',
+    ssl: process.env.DB_SSL === 'true' || Boolean(process.env.DATABASE_URL),
   },
   jwt: {
     secret: jwtSecret,

@@ -36,18 +36,33 @@ import AppLogger from '../utils/logger';
 const appConfig = config();
 const logger = new AppLogger('DB');
 
-const sequelize = new Sequelize({
-  database: appConfig.db.name,
-  dialect: 'postgres',
-  host: appConfig.db.host,
-  port: appConfig.db.port,
-  username: appConfig.db.username,
-  password: appConfig.db.password,
-  logging: false,
+const sequelizeOptions = {
+  dialect: 'postgres' as const,
+  logging: appConfig.db.logging ?? false,
   define: {
     timestamps: true,
   },
-});
+  dialectOptions: appConfig.db.ssl
+    ? {
+        ssl: {
+          require: true,
+          rejectUnauthorized: true,
+        },
+      }
+    : undefined,
+};
+
+const sequelize = appConfig.db.url
+  ? new Sequelize(appConfig.db.url, sequelizeOptions)
+  : new Sequelize({
+      ...sequelizeOptions,
+      database: appConfig.db.name,
+      host: appConfig.db.host,
+      port: appConfig.db.port,
+      username: appConfig.db.username,
+      password: appConfig.db.password,
+    });
+
 sequelize.addModels([
   User,
   Group,
