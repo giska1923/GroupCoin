@@ -21,6 +21,8 @@ import AppLogger from './utils/logger';
 const app = express();
 const logger = new AppLogger('App');
 
+app.set('trust proxy', 1);
+
 // Middlewares
 app.use(json());
 app.use(morgan('combined')); // Morgan for Request logging
