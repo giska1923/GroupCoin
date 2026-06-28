@@ -1,6 +1,11 @@
 import { Router } from 'express';
 import AuthController from '../controllers/auth.controller';
-import { LoginDTO, RegisterDTO } from '../dtos/request';
+import {
+  GoogleLoginDTO,
+  LoginDTO,
+  RefreshTokenDTO,
+  RegisterDTO,
+} from '../dtos/request';
 import { requireAuth } from '../middlewares/auth.middleware';
 import asyncWrapper from '../utils/async-wrapper';
 import { validateDTO } from '../utils/validation/validate';
@@ -17,6 +22,24 @@ router.post(
   '/login',
   validateDTO(LoginDTO),
   asyncWrapper(AuthController.login),
+);
+
+router.post(
+  '/google',
+  validateDTO(GoogleLoginDTO),
+  asyncWrapper(AuthController.google),
+);
+
+router.post(
+  '/refresh',
+  validateDTO(RefreshTokenDTO),
+  asyncWrapper(AuthController.refresh),
+);
+
+router.post(
+  '/logout',
+  validateDTO(RefreshTokenDTO),
+  asyncWrapper(AuthController.logout),
 );
 
 router.get('/me', requireAuth, asyncWrapper(AuthController.me));

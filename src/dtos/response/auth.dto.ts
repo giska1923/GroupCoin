@@ -6,5 +6,9 @@ export class AuthResponseDTO {
   @Type(() => UserDTO)
   user!: UserDTO;
 
-  @Expose() token!: string;
+  /** Short-lived bearer token sent on every authenticated request. */
+  @Expose() accessToken!: string;
+
+  /** Long-lived token exchanged at /auth/refresh for a new access token. */
+  @Expose() refreshToken!: string;
 }

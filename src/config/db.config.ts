@@ -28,6 +28,7 @@ import {
   Group,
   GroupInvitation,
   GroupMember,
+  RefreshToken,
   Settlement,
   User,
 } from '../models';
@@ -73,6 +74,7 @@ sequelize.addModels([
   Activity,
   GroupInvitation,
   Feedback,
+  RefreshToken,
 ]);
 
 sequelize

@@ -6,7 +6,7 @@ const { jwt: jwtConfig } = config();
 
 export function signToken(payload: JwtPayload): string {
   return jwt.sign(payload, jwtConfig.secret, {
-    expiresIn: jwtConfig.expiresIn as SignOptions['expiresIn'],
+    expiresIn: jwtConfig.accessExpiresIn as SignOptions['expiresIn'],
   });
 }
 

@@ -17,6 +17,7 @@ import Expense from './expense';
 import ExpenseSplit from './expense-split';
 import Settlement from './settlement';
 import Activity from './activity';
+import RefreshToken from './refresh-token';
 
 const BCRYPT_ROUNDS = 10;
 
@@ -25,13 +26,16 @@ interface UserAttributes {
   name: string;
   email: string;
   contact: string;
-  passwordHash: string;
+  // Null for accounts created through an external identity provider
+  // (e.g. Google), which never set a local password.
+  passwordHash: string | null;
+  googleId: string | null;
   role: RoleType;
 }
 
 type UserCreationAttributes = Optional<
   Omit<UserAttributes, 'id'>,
-  'contact' | 'role'
+  'contact' | 'role' | 'passwordHash' | 'googleId'
 >;
 
 @Table({
@@ -77,10 +81,20 @@ export default class User extends Model<
 
   @Column({
     type: DataType.STRING,
-    allowNull: false,
+    allowNull: true,
     field: 'password_hash',
   })
-  declare passwordHash: string;
+  declare passwordHash: string | null;
+
+  // Google's stable user identifier (the `sub` claim). Lets us recognise a
+  // returning Google user even if they change their email/name on Google.
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    unique: true,
+    field: 'google_id',
+  })
+  declare googleId: string | null;
 
   @Column({
     allowNull: false,
@@ -128,6 +142,9 @@ export default class User extends Model<
   @HasMany(() => Activity, 'actor_id')
   declare activities?: Activity[];
 
+  @HasMany(() => RefreshToken, 'user_id')
+  declare refreshTokens?: RefreshToken[];
+
   // Treat any assignment to `passwordHash` as a plain password and hash it.
   // Allows `User.create({ passwordHash: rawPassword })` from the service layer.
   @BeforeSave
@@ -141,6 +158,9 @@ export default class User extends Model<
   }
 
   async comparePassword(plainPassword: string): Promise<boolean> {
+    // Google-only accounts have no local password, so there is nothing to
+    // compare against — treat it as a failed password login.
+    if (!this.passwordHash) return false;
     return bcrypt.compare(plainPassword, this.passwordHash);
   }
 }

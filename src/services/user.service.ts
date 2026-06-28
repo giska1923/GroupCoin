@@ -2,7 +2,14 @@ import { randomBytes } from 'crypto';
 import sequelize from '../config/db.config';
 import { UpdateUserDTO } from '../dtos/request';
 import { UserDTO } from '../dtos/response';
-import { Feedback, Group, GroupInvitation, GroupMember, User } from '../models';
+import {
+  Feedback,
+  Group,
+  GroupInvitation,
+  GroupMember,
+  RefreshToken,
+  User,
+} from '../models';
 import { ForbiddenError, NotFoundError } from '../types';
 import { mapToClass } from '../utils/validation/class-mapper';
 
@@ -55,14 +62,20 @@ const UserService = {
 
       await Feedback.destroy({ where: { userId }, transaction });
 
+      // Invalidate all sessions; the anonymized row lives on, so leftover
+      // refresh tokens would otherwise keep minting valid access tokens.
+      await RefreshToken.destroy({ where: { userId }, transaction });
+
       // Anonymize rather than hard-delete so expense, settlement, and activity
-      // history in shared groups stays intact.
+      // history in shared groups stays intact. Clearing googleId also detaches
+      // the Google account so it can't sign back into this dead record.
       await user.update(
         {
           name: 'Deleted User',
           email: `deleted-${user.id}@deleted.local`,
           contact: `deleted-${user.id}`,
           passwordHash: randomBytes(32).toString('hex'),
+          googleId: null,
         },
         { transaction },
       );

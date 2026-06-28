@@ -1,5 +1,10 @@
 import { Request, Response } from 'express';
-import { LoginDTO, RegisterDTO } from '../dtos/request';
+import {
+  GoogleLoginDTO,
+  LoginDTO,
+  RefreshTokenDTO,
+  RegisterDTO,
+} from '../dtos/request';
 import AuthService from '../services/auth.service';
 import UserService from '../services/user.service';
 import { AuthenticationError } from '../types';
@@ -15,6 +20,24 @@ const AuthController = {
     const body: LoginDTO = req.body;
     const result = await AuthService.login(body);
     return res.status(200).json(result);
+  },
+
+  async google(req: Request, res: Response) {
+    const body: GoogleLoginDTO = req.body;
+    const result = await AuthService.googleLogin(body);
+    return res.status(200).json(result);
+  },
+
+  async refresh(req: Request, res: Response) {
+    const body: RefreshTokenDTO = req.body;
+    const result = await AuthService.refresh(body.refreshToken);
+    return res.status(200).json(result);
+  },
+
+  async logout(req: Request, res: Response) {
+    const body: RefreshTokenDTO = req.body;
+    await AuthService.logout(body.refreshToken);
+    return res.status(204).send();
   },
 
   async me(req: Request, res: Response) {

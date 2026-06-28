@@ -37,3 +37,16 @@ export class LoginDTO {
   @IsNotEmpty()
   password!: string;
 }
+
+export class GoogleLoginDTO {
+  // The Google-issued OpenID Connect ID token obtained on the client.
+  @IsString()
+  @IsNotEmpty()
+  idToken!: string;
+}
+
+export class RefreshTokenDTO {
+  @IsString()
+  @IsNotEmpty()
+  refreshToken!: string;
+}
