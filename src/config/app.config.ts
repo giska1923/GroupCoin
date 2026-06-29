@@ -45,4 +45,18 @@ export default (): AppConfig => ({
   expo: {
     accessToken: process.env.EXPO_ACCESS_TOKEN || undefined,
   },
+  email: {
+    host: process.env.SMTP_HOST || undefined,
+    port: Number(process.env.SMTP_PORT) || 587,
+    // Port 465 uses implicit TLS; 587/25 use STARTTLS (secure=false).
+    secure: process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT === '465',
+    user: process.env.SMTP_USER || undefined,
+    pass: process.env.SMTP_PASS || undefined,
+    from: process.env.EMAIL_FROM || 'GroupCoin <no-reply@groupcoin.app>',
+  },
+  verification: {
+    codeLength: Number(process.env.EMAIL_VERIFICATION_CODE_LENGTH) || 6,
+    ttl: process.env.EMAIL_VERIFICATION_TTL ?? '15m',
+    maxAttempts: Number(process.env.EMAIL_VERIFICATION_MAX_ATTEMPTS) || 5,
+  },
 });

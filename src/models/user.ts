@@ -19,6 +19,7 @@ import Settlement from './settlement';
 import Activity from './activity';
 import RefreshToken from './refresh-token';
 import DeviceToken from './device-token';
+import EmailVerification from './email-verification';
 
 const BCRYPT_ROUNDS = 10;
 
@@ -34,11 +35,21 @@ interface UserAttributes {
   role: RoleType;
   // Whether the user has opted in to push notifications for group activity.
   notificationsEnabled: boolean;
+  // True once the user has proven ownership of their email — either by
+  // entering the emailed verification code, or implicitly via Google sign-in
+  // (Google asserts the email is verified). Email/password logins are blocked
+  // until this is true.
+  emailVerified: boolean;
 }
 
 type UserCreationAttributes = Optional<
   Omit<UserAttributes, 'id'>,
-  'contact' | 'role' | 'passwordHash' | 'googleId' | 'notificationsEnabled'
+  | 'contact'
+  | 'role'
+  | 'passwordHash'
+  | 'googleId'
+  | 'notificationsEnabled'
+  | 'emailVerified'
 >;
 
 @Table({
@@ -118,6 +129,14 @@ export default class User extends Model<
   declare notificationsEnabled: boolean;
 
   @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+    field: 'email_verified',
+  })
+  declare emailVerified: boolean;
+
+  @Column({
     type: DataType.DATE,
     field: 'created_at',
     defaultValue: DataType.NOW,
@@ -158,6 +177,9 @@ export default class User extends Model<
 
   @HasMany(() => DeviceToken, 'user_id')
   declare deviceTokens?: DeviceToken[];
+
+  @HasMany(() => EmailVerification, 'user_id')
+  declare emailVerifications?: EmailVerification[];
 
   // Treat any assignment to `passwordHash` as a plain password and hash it.
   // Allows `User.create({ passwordHash: rawPassword })` from the service layer.

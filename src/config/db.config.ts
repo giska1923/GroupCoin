@@ -23,6 +23,7 @@ import config from './app.config';
 import {
   Activity,
   DeviceToken,
+  EmailVerification,
   Expense,
   ExpenseSplit,
   Feedback,
@@ -77,6 +78,7 @@ sequelize.addModels([
   Feedback,
   RefreshToken,
   DeviceToken,
+  EmailVerification,
 ]);
 
 sequelize

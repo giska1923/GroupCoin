@@ -9,3 +9,4 @@ export { default as GroupInvitation } from './group-invitation';
 export { default as Feedback } from './feedback';
 export { default as RefreshToken } from './refresh-token';
 export { default as DeviceToken } from './device-token';
+export { default as EmailVerification } from './email-verification';

@@ -47,3 +47,15 @@ export class ConflictError extends AppError {
     super(message, 409, 'CONFLICT');
   }
 }
+
+/**
+ * Raised when a user with the right password tries to log in but hasn't yet
+ * verified their email. The dedicated `EMAIL_NOT_VERIFIED` code lets the
+ * client route them to the verification screen instead of showing a generic
+ * error.
+ */
+export class EmailNotVerifiedError extends AppError {
+  constructor(message: string = 'Please verify your email to continue') {
+    super(message, 403, 'EMAIL_NOT_VERIFIED');
+  }
+}

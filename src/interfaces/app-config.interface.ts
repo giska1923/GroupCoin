@@ -35,6 +35,31 @@ interface ExpoConfig {
   accessToken: string | undefined;
 }
 
+interface EmailConfig {
+  /**
+   * SMTP host. When unset, the EmailService runs in "console" mode and logs
+   * the message instead of sending it — handy for local dev without an SMTP
+   * account. Set host/user/pass to send real mail in staging/production.
+   */
+  host: string | undefined;
+  port: number;
+  /** Whether the SMTP connection uses implicit TLS (true for port 465). */
+  secure: boolean;
+  user: string | undefined;
+  pass: string | undefined;
+  /** The From address shown to recipients, e.g. "GroupCoin <no-reply@…>". */
+  from: string;
+}
+
+interface VerificationConfig {
+  /** Number of digits in the emailed code. */
+  codeLength: number;
+  /** How long a code stays valid (e.g. "15m") before the user must resend. */
+  ttl: string;
+  /** Max wrong guesses against a single code before it is locked. */
+  maxAttempts: number;
+}
+
 interface AppConfig {
   env: string | undefined;
   port: number;
@@ -42,6 +67,8 @@ interface AppConfig {
   jwt: JwtConfig;
   google: GoogleConfig;
   expo: ExpoConfig;
+  email: EmailConfig;
+  verification: VerificationConfig;
 }
 
 export default AppConfig;

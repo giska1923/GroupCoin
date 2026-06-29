@@ -6,6 +6,8 @@ import {
   RegisterDTO,
   RegisterDeviceTokenDTO,
   RemoveDeviceTokenDTO,
+  ResendVerificationDTO,
+  VerifyEmailDTO,
 } from '../dtos/request';
 import AuthService from '../services/auth.service';
 import DeviceTokenService from '../services/device-token.service';
@@ -16,7 +18,20 @@ const AuthController = {
   async register(req: Request, res: Response) {
     const body: RegisterDTO = req.body;
     const result = await AuthService.register(body);
-    return res.status(201).json(result);
+    // 202 Accepted: the account is pending email verification, not yet active.
+    return res.status(202).json(result);
+  },
+
+  async verifyEmail(req: Request, res: Response) {
+    const body: VerifyEmailDTO = req.body;
+    const result = await AuthService.verifyEmail(body);
+    return res.status(200).json(result);
+  },
+
+  async resendVerification(req: Request, res: Response) {
+    const body: ResendVerificationDTO = req.body;
+    const result = await AuthService.resendVerification(body);
+    return res.status(200).json(result);
   },
 
   async login(req: Request, res: Response) {

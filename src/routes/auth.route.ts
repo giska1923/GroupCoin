@@ -7,6 +7,8 @@ import {
   RegisterDTO,
   RegisterDeviceTokenDTO,
   RemoveDeviceTokenDTO,
+  ResendVerificationDTO,
+  VerifyEmailDTO,
 } from '../dtos/request';
 import { requireAuth } from '../middlewares/auth.middleware';
 import asyncWrapper from '../utils/async-wrapper';
@@ -18,6 +20,18 @@ router.post(
   '/register',
   validateDTO(RegisterDTO),
   asyncWrapper(AuthController.register),
+);
+
+router.post(
+  '/verify-email',
+  validateDTO(VerifyEmailDTO),
+  asyncWrapper(AuthController.verifyEmail),
+);
+
+router.post(
+  '/resend-verification',
+  validateDTO(ResendVerificationDTO),
+  asyncWrapper(AuthController.resendVerification),
 );
 
 router.post(

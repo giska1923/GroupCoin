@@ -50,3 +50,21 @@ export class RefreshTokenDTO {
   @IsNotEmpty()
   refreshToken!: string;
 }
+
+export class VerifyEmailDTO {
+  @IsEmail()
+  @IsNotEmpty()
+  email!: string;
+
+  // The numeric code emailed to the user. Validated as a non-empty string so
+  // leading zeros survive; the exact length/format is checked in the service.
+  @IsString()
+  @IsNotEmpty()
+  code!: string;
+}
+
+export class ResendVerificationDTO {
+  @IsEmail()
+  @IsNotEmpty()
+  email!: string;
+}

@@ -8,4 +8,5 @@ export class UserDTO {
   @Expose() contact!: string;
   @Expose() role!: RoleType;
   @Expose() notificationsEnabled!: boolean;
+  @Expose() emailVerified!: boolean;
 }
