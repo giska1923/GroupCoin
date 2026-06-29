@@ -3,6 +3,7 @@ import sequelize from '../config/db.config';
 import { UpdateUserDTO } from '../dtos/request';
 import { UserDTO } from '../dtos/response';
 import {
+  DeviceToken,
   Feedback,
   Group,
   GroupInvitation,
@@ -65,6 +66,9 @@ const UserService = {
       // Invalidate all sessions; the anonymized row lives on, so leftover
       // refresh tokens would otherwise keep minting valid access tokens.
       await RefreshToken.destroy({ where: { userId }, transaction });
+
+      // Drop device tokens too, so the dead account can't keep receiving pushes.
+      await DeviceToken.destroy({ where: { userId }, transaction });
 
       // Anonymize rather than hard-delete so expense, settlement, and activity
       // history in shared groups stays intact. Clearing googleId also detaches

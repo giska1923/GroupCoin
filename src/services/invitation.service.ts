@@ -17,12 +17,32 @@ import {
 } from '../types';
 import { mapToClass } from '../utils/validation/class-mapper';
 import ActivityService from './activity.service';
+import PushService from './push.service';
 import {
   assertAdminOrOwner,
   loadGroupOr404,
   loadMembership,
 } from './group-access.service';
 import { notifyInvitationReceived } from '../websockets/invitation-notifier';
+
+/**
+ * Best-effort push to an invitee who already has an account. Email-only
+ * invitees (no `inviteeUserId`) have no device to notify, so they're skipped.
+ */
+const pushInvitation = (invitation: InvitationDTO): void => {
+  if (!invitation.inviteeUserId) return;
+  const groupName = invitation.group?.name ?? 'a group';
+  const inviterName = invitation.inviter?.name ?? 'Someone';
+  void PushService.notifyUsers([invitation.inviteeUserId], {
+    title: 'New group invitation',
+    body: `${inviterName} invited you to ${groupName}`,
+    data: {
+      type: 'GROUP_INVITATION',
+      invitationId: invitation.id,
+      groupId: invitation.groupId,
+    },
+  });
+};
 
 const INVITATION_TTL_DAYS = 7;
 
@@ -177,6 +197,8 @@ const InvitationService = {
       const dtoResult = toInvitationDTO(invitation, group, actor);
       if (notify) {
         notifyInvitationReceived(dtoResult);
+        // Defer the push until the invitation actually commits.
+        t.afterCommit(() => pushInvitation(dtoResult));
       }
       return dtoResult;
     };
@@ -218,7 +240,11 @@ const InvitationService = {
       : await sequelize.transaction(run);
 
     if (options.notify !== false) {
-      invitations.forEach(notifyInvitationReceived);
+      // The batch transaction has already committed here, so push directly.
+      invitations.forEach(invitation => {
+        notifyInvitationReceived(invitation);
+        pushInvitation(invitation);
+      });
     }
 
     return invitations;

@@ -18,6 +18,7 @@ import ExpenseSplit from './expense-split';
 import Settlement from './settlement';
 import Activity from './activity';
 import RefreshToken from './refresh-token';
+import DeviceToken from './device-token';
 
 const BCRYPT_ROUNDS = 10;
 
@@ -31,11 +32,13 @@ interface UserAttributes {
   passwordHash: string | null;
   googleId: string | null;
   role: RoleType;
+  // Whether the user has opted in to push notifications for group activity.
+  notificationsEnabled: boolean;
 }
 
 type UserCreationAttributes = Optional<
   Omit<UserAttributes, 'id'>,
-  'contact' | 'role' | 'passwordHash' | 'googleId'
+  'contact' | 'role' | 'passwordHash' | 'googleId' | 'notificationsEnabled'
 >;
 
 @Table({
@@ -107,6 +110,14 @@ export default class User extends Model<
   declare role: RoleType;
 
   @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+    field: 'notifications_enabled',
+  })
+  declare notificationsEnabled: boolean;
+
+  @Column({
     type: DataType.DATE,
     field: 'created_at',
     defaultValue: DataType.NOW,
@@ -144,6 +155,9 @@ export default class User extends Model<
 
   @HasMany(() => RefreshToken, 'user_id')
   declare refreshTokens?: RefreshToken[];
+
+  @HasMany(() => DeviceToken, 'user_id')
+  declare deviceTokens?: DeviceToken[];
 
   // Treat any assignment to `passwordHash` as a plain password and hash it.
   // Allows `User.create({ passwordHash: rawPassword })` from the service layer.

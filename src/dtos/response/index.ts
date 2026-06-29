@@ -7,3 +7,4 @@ export * from './settlement.dto';
 export * from './activity.dto';
 export * from './invitation.dto';
 export * from './feedback.dto';
+export * from './device-token.dto';

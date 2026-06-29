@@ -26,12 +26,22 @@ interface GoogleConfig {
   clientIds: string[];
 }
 
+interface ExpoConfig {
+  /**
+   * Optional Expo access token. Only required if "Enhanced Security for Push
+   * Notifications" is enabled on the Expo account; otherwise sends are
+   * unauthenticated and this stays undefined.
+   */
+  accessToken: string | undefined;
+}
+
 interface AppConfig {
   env: string | undefined;
   port: number;
   db: DbConfig;
   jwt: JwtConfig;
   google: GoogleConfig;
+  expo: ExpoConfig;
 }
 
 export default AppConfig;

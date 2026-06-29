@@ -42,4 +42,7 @@ export default (): AppConfig => ({
       .map(id => id.trim())
       .filter(Boolean),
   },
+  expo: {
+    accessToken: process.env.EXPO_ACCESS_TOKEN || undefined,
+  },
 });

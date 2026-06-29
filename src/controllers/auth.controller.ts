@@ -4,8 +4,11 @@ import {
   LoginDTO,
   RefreshTokenDTO,
   RegisterDTO,
+  RegisterDeviceTokenDTO,
+  RemoveDeviceTokenDTO,
 } from '../dtos/request';
 import AuthService from '../services/auth.service';
+import DeviceTokenService from '../services/device-token.service';
 import UserService from '../services/user.service';
 import { AuthenticationError } from '../types';
 
@@ -53,6 +56,24 @@ const AuthController = {
       throw new AuthenticationError('Not authenticated');
     }
     await UserService.deleteAccount(req.user.id);
+    return res.status(204).send();
+  },
+
+  async registerDeviceToken(req: Request, res: Response) {
+    if (!req.user) {
+      throw new AuthenticationError('Not authenticated');
+    }
+    const body: RegisterDeviceTokenDTO = req.body;
+    const result = await DeviceTokenService.registerToken(req.user.id, body);
+    return res.status(201).json(result);
+  },
+
+  async removeDeviceToken(req: Request, res: Response) {
+    if (!req.user) {
+      throw new AuthenticationError('Not authenticated');
+    }
+    const body: RemoveDeviceTokenDTO = req.body;
+    await DeviceTokenService.removeToken(req.user.id, body.token);
     return res.status(204).send();
   },
 };

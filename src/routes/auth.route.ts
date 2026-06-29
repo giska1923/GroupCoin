@@ -5,6 +5,8 @@ import {
   LoginDTO,
   RefreshTokenDTO,
   RegisterDTO,
+  RegisterDeviceTokenDTO,
+  RemoveDeviceTokenDTO,
 } from '../dtos/request';
 import { requireAuth } from '../middlewares/auth.middleware';
 import asyncWrapper from '../utils/async-wrapper';
@@ -45,5 +47,19 @@ router.post(
 router.get('/me', requireAuth, asyncWrapper(AuthController.me));
 
 router.delete('/me', requireAuth, asyncWrapper(AuthController.deleteAccount));
+
+router.post(
+  '/device-tokens',
+  requireAuth,
+  validateDTO(RegisterDeviceTokenDTO),
+  asyncWrapper(AuthController.registerDeviceToken),
+);
+
+router.delete(
+  '/device-tokens',
+  requireAuth,
+  validateDTO(RemoveDeviceTokenDTO),
+  asyncWrapper(AuthController.removeDeviceToken),
+);
 
 export default router;

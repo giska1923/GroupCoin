@@ -7,4 +7,5 @@ export class UserDTO {
   @Expose() email!: string;
   @Expose() contact!: string;
   @Expose() role!: RoleType;
+  @Expose() notificationsEnabled!: boolean;
 }

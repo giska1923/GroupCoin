@@ -22,6 +22,7 @@ import { Sequelize } from 'sequelize-typescript';
 import config from './app.config';
 import {
   Activity,
+  DeviceToken,
   Expense,
   ExpenseSplit,
   Feedback,
@@ -75,6 +76,7 @@ sequelize.addModels([
   GroupInvitation,
   Feedback,
   RefreshToken,
+  DeviceToken,
 ]);
 
 sequelize

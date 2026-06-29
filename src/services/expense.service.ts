@@ -17,6 +17,7 @@ import {
 import { fromCents, splitEqually, toCents } from '../utils/money';
 import { mapToClass } from '../utils/validation/class-mapper';
 import ActivityService from './activity.service';
+import PushService from './push.service';
 import { assertMember, loadGroupOr404 } from './group-access.service';
 
 // ---------- Helpers ----------
@@ -194,6 +195,21 @@ const ExpenseService = {
           participantIds,
         },
         transaction,
+      });
+
+      // Notify every participant except the person who added the expense,
+      // once the transaction has committed.
+      const recipientIds = participantIds.filter(id => id !== actorId);
+      transaction.afterCommit(() => {
+        void PushService.notifyUsers(recipientIds, {
+          title: group.name,
+          body: `New expense: ${expense.description} (${expense.currency} ${expense.amount})`,
+          data: {
+            type: 'EXPENSE_CREATED',
+            groupId,
+            expenseId: expense.id,
+          },
+        });
       });
 
       return toExpenseDetailDTO(expense, splits);
