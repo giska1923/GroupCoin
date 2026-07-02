@@ -30,6 +30,22 @@ import {
 
 const toGroupDTO = (group: Group): GroupDTO => mapToClass(group, GroupDTO);
 
+// Every group gets an image: when none is supplied at creation we assign a
+// generated abstract avatar (purple palette to match the app theme). The seed
+// is random so each group gets its own artwork.
+const defaultGroupImageUrl = (): string => {
+  const seed = crypto.randomUUID();
+  const params = new URLSearchParams({
+    seed,
+    size: '256',
+    backgroundColor: '1e1b4b,312e81,4338ca',
+    shape1Color: '6366f1,818cf8',
+    shape2Color: 'a5b4fc,8a89ff',
+    shape3Color: '4f46e5,c7d2fe',
+  });
+  return `https://api.dicebear.com/9.x/shapes/png?${params.toString()}`;
+};
+
 const toMemberDTO = (
   member: GroupMember,
   user?: User | null,
@@ -56,6 +72,7 @@ const GroupService = {
           name: dto.name,
           description: dto.description ?? null,
           defaultCurrency: dto.defaultCurrency ?? 'USD',
+          imageUrl: dto.imageUrl ?? defaultGroupImageUrl(),
           ownerId: actorId,
         },
         { transaction },
@@ -122,7 +139,26 @@ const GroupService = {
       where: { id: groupIds },
       order: [['created_at', 'DESC']],
     });
-    return groups.map(toGroupDTO);
+
+    // Member counts for the fetched groups in one aggregate query.
+    const counts = (await GroupMember.findAll({
+      where: { groupId: groupIds },
+      attributes: [
+        'groupId',
+        [sequelize.fn('COUNT', sequelize.col('id')), 'memberCount'],
+      ],
+      group: ['group_id'],
+      raw: true,
+    })) as unknown as { groupId: string; memberCount: string }[];
+    const countByGroupId = new Map(
+      counts.map(c => [c.groupId, Number(c.memberCount)]),
+    );
+
+    return groups.map(group => {
+      const dto = toGroupDTO(group);
+      dto.memberCount = countByGroupId.get(group.id) ?? 0;
+      return dto;
+    });
   },
 
   async getGroupDetail(
@@ -163,14 +199,23 @@ const GroupService = {
         name: string;
         description: string | null;
         defaultCurrency: string;
+        imageUrl: string;
       }> = {};
       if (dto.name !== undefined) updates.name = dto.name;
       if (dto.description !== undefined) updates.description = dto.description;
       if (dto.defaultCurrency !== undefined) {
         updates.defaultCurrency = dto.defaultCurrency;
       }
+      if (dto.imageUrl !== undefined) updates.imageUrl = dto.imageUrl;
 
       await group.update(updates, { transaction });
+
+      // Don't persist image payloads (potentially large data URIs) in the
+      // activity log — just note that the image changed.
+      const loggedChanges = {
+        ...updates,
+        ...(updates.imageUrl !== undefined ? { imageUrl: '[updated]' } : {}),
+      };
 
       await ActivityService.record({
         type: ActivityType.GROUP_UPDATED,
@@ -178,7 +223,7 @@ const GroupService = {
         groupId: group.id,
         entityType: 'group',
         entityId: group.id,
-        metadata: { changes: updates },
+        metadata: { changes: loggedChanges },
         transaction,
       });
 

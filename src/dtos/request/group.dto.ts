@@ -28,6 +28,12 @@ export class CreateGroupDTO {
   @Length(3, 3, { message: 'defaultCurrency must be a 3-letter ISO 4217 code' })
   defaultCurrency?: string;
 
+  // https URL or base64 data URI (data URIs are large, hence the generous cap).
+  @IsOptional()
+  @IsString()
+  @MaxLength(500_000)
+  imageUrl?: string;
+
   @IsOptional()
   @IsArray()
   @ArrayMaxSize(50)
@@ -51,6 +57,12 @@ export class UpdateGroupDTO {
   @IsString()
   @Length(3, 3, { message: 'defaultCurrency must be a 3-letter ISO 4217 code' })
   defaultCurrency?: string;
+
+  // https URL or base64 data URI (data URIs are large, hence the generous cap).
+  @IsOptional()
+  @IsString()
+  @MaxLength(500_000)
+  imageUrl?: string;
 }
 
 export class AddGroupMemberDTO {

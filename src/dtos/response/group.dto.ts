@@ -7,9 +7,13 @@ export class GroupDTO {
   @Expose() name!: string;
   @Expose() description!: string | null;
   @Expose() defaultCurrency!: string;
+  @Expose() imageUrl!: string | null;
   @Expose() ownerId!: string;
   @Expose() createdAt!: Date;
   @Expose() updatedAt!: Date;
+
+  // Only populated on list endpoints that aggregate membership.
+  @Expose() memberCount?: number;
 }
 
 export class GroupMemberDTO {

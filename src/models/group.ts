@@ -21,12 +21,13 @@ interface GroupAttributes {
   name: string;
   description: string | null;
   defaultCurrency: string;
+  imageUrl: string | null;
   ownerId: string;
 }
 
 type GroupCreationAttributes = Optional<
   Omit<GroupAttributes, 'id'>,
-  'description' | 'defaultCurrency'
+  'description' | 'defaultCurrency' | 'imageUrl'
 >;
 
 @Table({
@@ -67,6 +68,14 @@ export default class Group extends Model<
     field: 'default_currency',
   })
   declare defaultCurrency: string;
+
+  // Either an https URL or a base64 data URI uploaded from the app.
+  @Column({
+    type: DataType.TEXT,
+    allowNull: true,
+    field: 'image_url',
+  })
+  declare imageUrl: string | null;
 
   @ForeignKey(() => User)
   @Column({

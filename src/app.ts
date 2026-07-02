@@ -24,7 +24,8 @@ const logger = new AppLogger('App');
 app.set('trust proxy', 1);
 
 // Middlewares
-app.use(json());
+// Raised limit so group images (base64 data URIs) fit in JSON bodies.
+app.use(json({ limit: '2mb' }));
 app.use(morgan('combined')); // Morgan for Request logging
 app.use(cors());
 app.use(rateLimiter);
