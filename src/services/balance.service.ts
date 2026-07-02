@@ -1,10 +1,19 @@
+import { Transaction } from 'sequelize';
+import { GroupStatus } from '../constants';
 import {
   CurrencyAmountDTO,
   SimplifiedTransferDTO,
   UserBalanceDTO,
   UserDTO,
 } from '../dtos/response';
-import { Expense, ExpenseSplit, GroupMember, Settlement, User } from '../models';
+import {
+  Expense,
+  ExpenseSplit,
+  Group,
+  GroupMember,
+  Settlement,
+  User,
+} from '../models';
 import { fromCents, toCents } from '../utils/money';
 import { mapToClass } from '../utils/validation/class-mapper';
 import { assertMember, loadGroupOr404 } from './group-access.service';
@@ -41,18 +50,22 @@ const addToBalance = (
  *   Settlement: fromUser += amount (debt paid down),
  *               toUser   -= amount (credit reduced)
  */
-const computeNetBalances = async (groupId: string): Promise<BalanceMap> => {
+const computeNetBalances = async (
+  groupId: string,
+  transaction?: Transaction,
+): Promise<BalanceMap> => {
   const balances: BalanceMap = new Map();
 
   const [expenses, settlements] = await Promise.all([
-    Expense.findAll({ where: { groupId } }),
-    Settlement.findAll({ where: { groupId } }),
+    Expense.findAll({ where: { groupId }, transaction }),
+    Settlement.findAll({ where: { groupId }, transaction }),
   ]);
 
   if (expenses.length > 0) {
     const expenseIds = expenses.map(e => e.id);
     const splits = await ExpenseSplit.findAll({
       where: { expenseId: expenseIds },
+      transaction,
     });
 
     const splitsByExpense = new Map<string, ExpenseSplit[]>();
@@ -136,6 +149,35 @@ const simplifyForCurrency = (
   }
 
   return transfers;
+};
+
+/**
+ * Recompute whether the group is fully settled (every member's net balance is
+ * zero in every currency) and persist the ACTIVE / SETTLED_UP status when it
+ * changed. Call inside the same transaction as the expense/settlement write so
+ * the status can never drift from the data it is derived from.
+ */
+export const refreshGroupSettlementStatus = async (
+  group: Group,
+  transaction?: Transaction,
+): Promise<void> => {
+  const balances = await computeNetBalances(group.id, transaction);
+
+  let settled = true;
+  for (const userMap of balances.values()) {
+    for (const cents of userMap.values()) {
+      if (cents !== 0) {
+        settled = false;
+        break;
+      }
+    }
+    if (!settled) break;
+  }
+
+  const status = settled ? GroupStatus.SETTLED_UP : GroupStatus.ACTIVE;
+  if (group.status !== status) {
+    await group.update({ status }, { transaction });
+  }
 };
 
 const BalanceService = {

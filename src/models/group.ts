@@ -9,7 +9,8 @@ import {
   Model,
   Table,
 } from 'sequelize-typescript';
-import { DEFAULT_CURRENCY } from '../constants';
+import { DEFAULT_CURRENCY, GroupStatus } from '../constants';
+import { GroupStatusType } from '../types';
 import User from './user';
 import GroupMember from './group-member';
 import Expense from './expense';
@@ -23,11 +24,12 @@ interface GroupAttributes {
   defaultCurrency: string;
   imageUrl: string | null;
   ownerId: string;
+  status: GroupStatusType;
 }
 
 type GroupCreationAttributes = Optional<
   Omit<GroupAttributes, 'id'>,
-  'description' | 'defaultCurrency' | 'imageUrl'
+  'description' | 'defaultCurrency' | 'imageUrl' | 'status'
 >;
 
 @Table({
@@ -84,6 +86,14 @@ export default class Group extends Model<
     field: 'owner_id',
   })
   declare ownerId: string;
+
+  // ACTIVE while any member owes money; SETTLED_UP once all balances are zero.
+  @Column({
+    type: DataType.STRING(16),
+    allowNull: false,
+    defaultValue: GroupStatus.ACTIVE,
+  })
+  declare status: GroupStatusType;
 
   @Column({
     type: DataType.DATE,

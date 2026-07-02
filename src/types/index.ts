@@ -1,6 +1,7 @@
 export * from './role';
 export * from './error';
 export * from './group-role';
+export * from './group-status';
 export * from './split-type';
 export * from './activity-type';
 export * from './auth';

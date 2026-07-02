@@ -11,7 +11,9 @@ import {
 } from '../types';
 import { toCents } from '../utils/money';
 import { mapToClass } from '../utils/validation/class-mapper';
+import { notifyGroupUpdated } from '../websockets/group-notifier';
 import ActivityService from './activity.service';
+import { refreshGroupSettlementStatus } from './balance.service';
 import { assertMember, loadGroupOr404 } from './group-access.service';
 
 const toSettlementDTO = (s: Settlement): SettlementDTO =>
@@ -125,6 +127,11 @@ const SettlementService = {
         transaction,
       });
 
+      // Flips the group to SETTLED_UP when this payment zeroed every balance.
+      await refreshGroupSettlementStatus(group, transaction);
+
+      transaction.afterCommit(() => notifyGroupUpdated(groupId));
+
       return toSettlementDTO(settlement);
     });
   },
@@ -181,6 +188,11 @@ const SettlementService = {
         metadata: snapshot,
         transaction,
       });
+
+      // Undoing a payment usually re-opens debts — recompute the status.
+      await refreshGroupSettlementStatus(group, transaction);
+
+      transaction.afterCommit(() => notifyGroupUpdated(settlement.groupId));
     });
   },
 };

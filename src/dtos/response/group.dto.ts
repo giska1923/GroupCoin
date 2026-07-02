@@ -1,5 +1,5 @@
 import { Expose, Type } from 'class-transformer';
-import { GroupRoleType } from '../../types';
+import { GroupRoleType, GroupStatusType } from '../../types';
 import { UserDTO } from './user.dto';
 
 export class GroupDTO {
@@ -9,6 +9,7 @@ export class GroupDTO {
   @Expose() defaultCurrency!: string;
   @Expose() imageUrl!: string | null;
   @Expose() ownerId!: string;
+  @Expose() status!: GroupStatusType;
   @Expose() createdAt!: Date;
   @Expose() updatedAt!: Date;
 

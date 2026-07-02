@@ -16,8 +16,10 @@ import {
 } from '../types';
 import { fromCents, splitEqually, toCents } from '../utils/money';
 import { mapToClass } from '../utils/validation/class-mapper';
+import { notifyGroupUpdated } from '../websockets/group-notifier';
 import ActivityService from './activity.service';
 import PushService from './push.service';
+import { refreshGroupSettlementStatus } from './balance.service';
 import { assertMember, loadGroupOr404 } from './group-access.service';
 
 // ---------- Helpers ----------
@@ -197,10 +199,14 @@ const ExpenseService = {
         transaction,
       });
 
+      // A new expense re-opens debts in a settled group.
+      await refreshGroupSettlementStatus(group, transaction);
+
       // Notify every participant except the person who added the expense,
       // once the transaction has committed.
       const recipientIds = participantIds.filter(id => id !== actorId);
       transaction.afterCommit(() => {
+        notifyGroupUpdated(groupId);
         void PushService.notifyUsers(recipientIds, {
           title: group.name,
           body: `New expense: ${expense.description} (${expense.currency} ${expense.amount})`,
@@ -362,6 +368,10 @@ const ExpenseService = {
         transaction,
       });
 
+      await refreshGroupSettlementStatus(group, transaction);
+
+      transaction.afterCommit(() => notifyGroupUpdated(expense.groupId));
+
       return toExpenseDetailDTO(expense, splits);
     });
   },
@@ -394,6 +404,10 @@ const ExpenseService = {
         metadata: snapshot,
         transaction,
       });
+
+      await refreshGroupSettlementStatus(group, transaction);
+
+      transaction.afterCommit(() => notifyGroupUpdated(expense.groupId));
     });
   },
 };

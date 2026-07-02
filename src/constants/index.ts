@@ -2,6 +2,7 @@ export * from './role';
 export * from './date-format';
 export * from './currency';
 export * from './group-role';
+export * from './group-status';
 export * from './split-type';
 export * from './activity-type';
 export * from './invitation-status';
