@@ -25,11 +25,12 @@ interface ExpenseAttributes {
   currency: string;
   expenseDate: Date;
   splitType: SplitTypeValue;
+  settledAt: Date | null;
   deletedAt: Date | null;
 }
 
 type ExpenseCreationAttributes = Optional<
-  Omit<ExpenseAttributes, 'id' | 'deletedAt'>,
+  Omit<ExpenseAttributes, 'id' | 'deletedAt' | 'settledAt'>,
   'currency' | 'expenseDate' | 'splitType'
 >;
 
@@ -111,6 +112,16 @@ export default class Expense extends Model<
     },
   })
   declare splitType: SplitTypeValue;
+
+  // Stamped when the whole group reaches SETTLED_UP; null while the expense
+  // still contributes to open debts. Cleared again if the debt re-opens
+  // (split-affecting edit, or the covering settlement is deleted).
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+    field: 'settled_at',
+  })
+  declare settledAt: Date | null;
 
   @Column({
     type: DataType.DATE,

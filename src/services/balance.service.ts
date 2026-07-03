@@ -156,6 +156,9 @@ const simplifyForCurrency = (
  * zero in every currency) and persist the ACTIVE / SETTLED_UP status when it
  * changed. Call inside the same transaction as the expense/settlement write so
  * the status can never drift from the data it is derived from.
+ *
+ * Reaching SETTLED_UP also stamps `settledAt` on every open expense, so
+ * expenses added afterwards are distinguishable from ones already paid off.
  */
 export const refreshGroupSettlementStatus = async (
   group: Group,
@@ -172,6 +175,13 @@ export const refreshGroupSettlementStatus = async (
       }
     }
     if (!settled) break;
+  }
+
+  if (settled) {
+    await Expense.update(
+      { settledAt: new Date() },
+      { where: { groupId: group.id, settledAt: null }, transaction },
+    );
   }
 
   const status = settled ? GroupStatus.SETTLED_UP : GroupStatus.ACTIVE;

@@ -327,6 +327,9 @@ const ExpenseService = {
             amount: fromCents(totalCents),
             paidBy: newPaidBy,
             splitType: newSplitType,
+            // Changing who owes what re-opens the debt; the status refresh
+            // below re-stamps it if the group is still fully settled.
+            settledAt: null,
           },
           { transaction },
         );

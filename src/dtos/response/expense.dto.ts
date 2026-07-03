@@ -17,6 +17,7 @@ export class ExpenseDTO {
   @Expose() currency!: string;
   @Expose() expenseDate!: Date;
   @Expose() splitType!: SplitTypeValue;
+  @Expose() settledAt!: Date | null;
   @Expose() createdAt!: Date;
   @Expose() updatedAt!: Date;
 }

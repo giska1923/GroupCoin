@@ -1,9 +1,9 @@
-import { Transaction } from 'sequelize';
+import { Op, Transaction } from 'sequelize';
 import { ActivityType, GroupRole } from '../constants';
 import sequelize from '../config/db.config';
 import { CreateSettlementDTO } from '../dtos/request';
 import { SettlementDTO } from '../dtos/response';
-import { Group, GroupMember, Settlement } from '../models';
+import { Expense, Group, GroupMember, Settlement } from '../models';
 import {
   BadRequestError,
   ForbiddenError,
@@ -188,6 +188,19 @@ const SettlementService = {
         metadata: snapshot,
         transaction,
       });
+
+      // Any full settle-up stamped after this settlement existed necessarily
+      // relied on it — deleting the payment re-opens those expenses.
+      await Expense.update(
+        { settledAt: null },
+        {
+          where: {
+            groupId: settlement.groupId,
+            settledAt: { [Op.gte]: settlement.createdAt },
+          },
+          transaction,
+        },
+      );
 
       // Undoing a payment usually re-opens debts — recompute the status.
       await refreshGroupSettlementStatus(group, transaction);
