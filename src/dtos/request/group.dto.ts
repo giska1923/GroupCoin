@@ -6,10 +6,9 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  Length,
   MaxLength,
 } from 'class-validator';
-import { GroupRole } from '../../constants';
+import { GroupRole, SUPPORTED_CURRENCY_CODES } from '../../constants';
 
 export class CreateGroupDTO {
   @IsString()
@@ -24,8 +23,9 @@ export class CreateGroupDTO {
 
   // ISO 4217 currency code (e.g. USD, EUR).
   @IsOptional()
-  @IsString()
-  @Length(3, 3, { message: 'defaultCurrency must be a 3-letter ISO 4217 code' })
+  @IsIn(SUPPORTED_CURRENCY_CODES, {
+    message: 'defaultCurrency must be a supported ISO 4217 code',
+  })
   defaultCurrency?: string;
 
   // https URL or base64 data URI (data URIs are large, hence the generous cap).
@@ -54,8 +54,9 @@ export class UpdateGroupDTO {
   description?: string;
 
   @IsOptional()
-  @IsString()
-  @Length(3, 3, { message: 'defaultCurrency must be a 3-letter ISO 4217 code' })
+  @IsIn(SUPPORTED_CURRENCY_CODES, {
+    message: 'defaultCurrency must be a supported ISO 4217 code',
+  })
   defaultCurrency?: string;
 
   // https URL or base64 data URI (data URIs are large, hence the generous cap).

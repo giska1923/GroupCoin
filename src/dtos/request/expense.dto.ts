@@ -11,10 +11,9 @@ import {
   IsOptional,
   IsString,
   IsUUID,
-  Length,
   MaxLength,
 } from 'class-validator';
-import { SplitType } from '../../constants';
+import { SplitType, SUPPORTED_CURRENCY_CODES } from '../../constants';
 
 const SPLIT_TYPES = [...Object.values(SplitType)];
 
@@ -37,10 +36,12 @@ export class CreateExpenseDTO {
   @IsUUID('4')
   paidBy?: string;
 
-  // ISO 4217 currency code. Defaults to the group's defaultCurrency.
+  // ISO 4217 currency code. Defaults to the group's defaultCurrency, and must
+  // match it when provided (groups are single-currency).
   @IsOptional()
-  @IsString()
-  @Length(3, 3)
+  @IsIn(SUPPORTED_CURRENCY_CODES, {
+    message: 'currency must be a supported ISO 4217 code',
+  })
   currency?: string;
 
   @IsOptional()
@@ -78,8 +79,9 @@ export class UpdateExpenseDTO {
   paidBy?: string;
 
   @IsOptional()
-  @IsString()
-  @Length(3, 3)
+  @IsIn(SUPPORTED_CURRENCY_CODES, {
+    message: 'currency must be a supported ISO 4217 code',
+  })
   currency?: string;
 
   @IsOptional()

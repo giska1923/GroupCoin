@@ -158,6 +158,13 @@ const ExpenseService = {
         throw new BadRequestError('amount must be greater than zero');
       }
 
+      // Groups are single-currency: every expense uses the group's currency.
+      if (dto.currency && dto.currency !== group.defaultCurrency) {
+        throw new BadRequestError(
+          `This group uses ${group.defaultCurrency}; expenses must be entered in the group currency`,
+        );
+      }
+
       const splitType: SplitTypeValue = dto.splitType ?? SplitType.EQUAL;
       const shares = computeSplitAmounts(splitType, totalCents, participantIds);
 
@@ -267,7 +274,15 @@ const ExpenseService = {
         expenseDate: Date;
       }> = {};
       if (dto.description !== undefined) scalarUpdates.description = dto.description;
-      if (dto.currency !== undefined) scalarUpdates.currency = dto.currency;
+      if (dto.currency !== undefined) {
+        // Groups are single-currency: expenses cannot move off the group currency.
+        if (dto.currency !== group.defaultCurrency) {
+          throw new BadRequestError(
+            `This group uses ${group.defaultCurrency}; expenses must be entered in the group currency`,
+          );
+        }
+        scalarUpdates.currency = dto.currency;
+      }
       if (dto.expenseDate !== undefined) {
         scalarUpdates.expenseDate = new Date(dto.expenseDate);
       }

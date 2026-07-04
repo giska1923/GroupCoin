@@ -1,13 +1,14 @@
 import {
   IsDateString,
+  IsIn,
   IsNotEmpty,
   IsNumberString,
   IsOptional,
   IsString,
   IsUUID,
-  Length,
   MaxLength,
 } from 'class-validator';
+import { SUPPORTED_CURRENCY_CODES } from '../../constants';
 
 export class CreateSettlementDTO {
   // Optional: defaults to the calling user when omitted.
@@ -26,10 +27,12 @@ export class CreateSettlementDTO {
   @IsNotEmpty()
   amount!: string;
 
-  // ISO 4217 currency code. Defaults to the group's defaultCurrency.
+  // ISO 4217 currency code. Defaults to the group's defaultCurrency, and must
+  // match it when provided (groups are single-currency).
   @IsOptional()
-  @IsString()
-  @Length(3, 3)
+  @IsIn(SUPPORTED_CURRENCY_CODES, {
+    message: 'currency must be a supported ISO 4217 code',
+  })
   currency?: string;
 
   @IsOptional()

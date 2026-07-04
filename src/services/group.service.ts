@@ -12,8 +12,8 @@ import {
   InvitationDTO,
   UserDTO,
 } from '../dtos/response';
-import { Group, GroupMember, User } from '../models';
-import { ForbiddenError, NotFoundError } from '../types';
+import { Expense, Group, GroupMember, Settlement, User } from '../models';
+import { BadRequestError, ForbiddenError, NotFoundError } from '../types';
 import { mapToClass } from '../utils/validation/class-mapper';
 import ActivityService from './activity.service';
 import InvitationService from './invitation.service';
@@ -203,7 +203,21 @@ const GroupService = {
       }> = {};
       if (dto.name !== undefined) updates.name = dto.name;
       if (dto.description !== undefined) updates.description = dto.description;
-      if (dto.defaultCurrency !== undefined) {
+      if (
+        dto.defaultCurrency !== undefined &&
+        dto.defaultCurrency !== group.defaultCurrency
+      ) {
+        // The group currency is the single currency for all of its expenses
+        // and settlements, so it is locked once any money has been recorded.
+        const [expenseCount, settlementCount] = await Promise.all([
+          Expense.count({ where: { groupId }, transaction }),
+          Settlement.count({ where: { groupId }, transaction }),
+        ]);
+        if (expenseCount > 0 || settlementCount > 0) {
+          throw new BadRequestError(
+            'The group currency cannot be changed after expenses or settlements have been recorded',
+          );
+        }
         updates.defaultCurrency = dto.defaultCurrency;
       }
       if (dto.imageUrl !== undefined) updates.imageUrl = dto.imageUrl;

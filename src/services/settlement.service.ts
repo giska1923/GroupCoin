@@ -99,6 +99,13 @@ const SettlementService = {
         throw new BadRequestError('amount must be greater than zero');
       }
 
+      // Groups are single-currency: settlements use the group's currency.
+      if (dto.currency && dto.currency !== group.defaultCurrency) {
+        throw new BadRequestError(
+          `This group uses ${group.defaultCurrency}; settlements must be recorded in the group currency`,
+        );
+      }
+
       const settlement = await Settlement.create(
         {
           groupId,
